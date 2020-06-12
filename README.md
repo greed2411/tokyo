@@ -1,4 +1,4 @@
-# tokyo
+on# tokyo
 
 > When you hit rock-bottom, you still have a way to go until the abyss.- Tokyo, Netflix's "Money Heist" (La Casa De Papel)
 
@@ -18,7 +18,7 @@ When one is limited by the technology of the time, One resorts to Java APIs usin
 This is my first attempt on Clojure to have a REST API which when uploaded a file, identifies it's `mime-type`, `extension` and `text` if present inside the file and returns information as JSON.
 This works for several type of files. Including the ones which require OCR, thanks to Tesseract. Complete [list](https://tika.apache.org/0.9/formats.html) of supported file formats by Tika.
 
-Uses [ring](https://github.com/ring-clojure/ring) for Clojure HTTP server abstraction, [jetty](https://www.eclipse.org/jetty/) for actual HTTP server, [pantomime](https://github.com/michaelklishin/pantomime) for a clojure abstraction over [Apache Tika](https://tika.apache.org/) .
+Uses [ring](https://github.com/ring-clojure/ring) for Clojure HTTP server abstraction, [jetty](https://www.eclipse.org/jetty/) for actual HTTP server, [pantomime](https://github.com/michaelklishin/pantomime) for a clojure abstraction over [Apache Tika](https://tika.apache.org/) also optionally served using [traefik](https://containo.us/traefik/)
 
 
 ## Installation
@@ -33,12 +33,14 @@ Two options:
 2. Else build the docker image using `Dockerfile`.
 
 ```
-docker build . -t tokyo
-docker run -p 3000:3000 tokyo:latest
+docker build ./ -t tokyo
+docker run tokyo:latest
 ```
 
-Note: the server defaults to running on port 3000, so publish the port number while spinning up a container.
+Note: the server defaults to running on port 80, because it has been exposed in the docker image.
 You can change the port number by setting an enviornment variable `TOKYO_PORT` inside the `Dockerfile`, or in your shell prompt to whichever port number you'd like when running the `.jar` file.
+
+I've also added a `docker-compose.yml` which uses [traefik](https://containo.us/traefik/) as reverse proxy. use `docker-compose up`.
 
 ## Usage
 
@@ -47,7 +49,7 @@ You can change the port number by setting an enviornment variable `TOKYO_PORT` i
 
 
     ```bash
-    curl -XPOST  "http://localhost:3000/file" -F file=@/path/to/file/sample.doc
+    curl -XPOST  "http://localhost:80/file" -F file=@/path/to/file/sample.doc
 
     {"mime-type":"application/msword","ext":".bin","text":"Lorem ipsum \nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ac faucibus odio."}
     ```
@@ -58,7 +60,7 @@ You can change the port number by setting an enviornment variable `TOKYO_PORT` i
     >>> import requests
     >>> import json
 
-    >>> url = "http://localhost:3000/file"
+    >>> url = "http://localhost:80/file"
     >>> files = {"file": open("/path/to/file/sample.doc")}
     >>> response = requests.post(url, files=files)
     >>> json.loads(response.content)
@@ -77,12 +79,25 @@ Note: The files being uploaded are stored as temp files, in `/tmp` and removed a
 
 2. just a `/`, `GET` request returns `Hello World` as plain text. to act as ping.
 
+If going down the path of using `docker-compose`. The request gets altered to
 
+```bash
+curl -XPOST  -H Host:tokyo.localhost http://localhost/file -F file=@/path/to/file/sample.doc
 
+{"mime-type":"application/msword","ext":".bin","text":"Lorem ipsum \nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ac faucibus odio."}
+```
+
+and
+
+```python
+>>> response = requests.post(url, files=files, headers={"Host": "tokyo.localhost"})
+```
+
+where `tokyo.localhost` has been mentioned in `docker-compose.yml`
 
 ### Why?
 
-I had to do this because neither Python's [filetype](https://github.com/h2non/filetype.py) (doesn't identify .doc, .docx, plain text), [textract](https://github.com/deanmalmgren/textract) (hacky way of extracting text, and one needs to know the extension before extracting) are as gooda as Tika. The Go version, [filetype](https://github.com/h2non/filetype) didn't support a way to extract text. So I resorted to spiraling down the path of using Java's [Apache Tika](https://tika.apache.org/) using the Clojure [pantomime](https://github.com/michaelklishin/pantomime) library.
+I had to do this because neither Python's [filetype](https://github.com/h2non/filetype.py) (doesn't identify .doc, .docx, plain text), [textract](https://github.com/deanmalmgren/textract) (hacky way of extracting text, and one needs to know the extension before extracting) are as good as Tika. The Go version, [filetype](https://github.com/h2non/filetype) didn't support a way to extract text. So I resorted to spiraling down the path of using Java's [Apache Tika](https://tika.apache.org/) using the Clojure [pantomime](https://github.com/michaelklishin/pantomime) library.
 
 
 ## License
