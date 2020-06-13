@@ -1,4 +1,4 @@
-on# tokyo
+# tokyo
 
 > When you hit rock-bottom, you still have a way to go until the abyss.- Tokyo, Netflix's "Money Heist" (La Casa De Papel)
 
@@ -18,7 +18,7 @@ When one is limited by the technology of the time, One resorts to Java APIs usin
 This is my first attempt on Clojure to have a REST API which when uploaded a file, identifies it's `mime-type`, `extension` and `text` if present inside the file and returns information as JSON.
 This works for several type of files. Including the ones which require OCR, thanks to Tesseract. Complete [list](https://tika.apache.org/0.9/formats.html) of supported file formats by Tika.
 
-Uses [ring](https://github.com/ring-clojure/ring) for Clojure HTTP server abstraction, [jetty](https://www.eclipse.org/jetty/) for actual HTTP server, [pantomime](https://github.com/michaelklishin/pantomime) for a clojure abstraction over [Apache Tika](https://tika.apache.org/) also optionally served using [traefik](https://containo.us/traefik/)
+Uses [ring](https://github.com/ring-clojure/ring) for Clojure HTTP server abstraction, [jetty](https://www.eclipse.org/jetty/) for actual HTTP server, [pantomime](https://github.com/michaelklishin/pantomime) for a clojure abstraction over [Apache Tika](https://tika.apache.org/) and also optionally served using [traefik](https://containo.us/traefik/) acting as reverse-proxy.
 
 
 ## Installation
